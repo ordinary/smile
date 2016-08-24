@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?><!--无访问限制-->
+<website name="湖南人才网">
+    <!-- list 处理任务 -->
+    <job id="hnrcscList" name="hnrcscList" db="hnrcscList">
+        <!-- type 分三种 text是文本内容, attr是属性,url 是从url中获取 -->
+        <!--   global 选配 默认false-->
+        <field name="jId" require="true">
+            <source type="attr" attr="href" tagParser="td.span1+td a"/>
+            <parser type="regex" match="id/(\S+).html"/>
+        </field>
+        <field name="jobName"><!--工作名称-->
+            <source type="text" tagParser="td.span1+td a"/>
+        </field>
+        <field name="companyName"><!--公司名称-->
+            <source type="text" tagParser="td.span1+td+td"/>
+        </field>
+        <field name="jobArea"><!--工作地点-->
+            <source type="text" tagParser="td.span1+td+td+td+td+td"/>
+        </field>
+        <field name="publishTime"><!--发布时间-->
+            <source type="text" tagParser="td.span1+td+td+td+td+td+td"/>
+        </field>
+        <field name="url"><!--详情链接-->
+            <source type="attr" attr="href" tagParser="td.span1+td a"/>
+        </field>
+    </job>
+
+    <!--content-->
+    <job id="hnrcsc" name="hnrcsc" db="hnrcsc">
+        <!-- type 分三种 text是文本内容, attr是属性,url 是从url中获取 -->
+        <!--   global 选配 默认false-->
+        <field name="jId" require="true"> <!--id-->
+            <source type="url"/>
+            <parser type="regex" match="id/(\S+).html"/>
+        </field>
+        <field name="jobName"><!--工作名称-->
+            <source type="text" tagParser=".col-main h3"/>
+        </field>
+        <field name="publishTime"><!--发布时间-->
+            <source type="text" tagParser="td:contains(招聘起止日期)+td"/>
+            <parser type="regex" match="(\S+) "/>
+        </field>
+        <field name="jobSalary"><!--薪水-->
+            <source type="text" tagParser="td:contains(薪)+td"/>
+        </field>
+        <field name="jobArea"><!--工作地点-->
+            <source type="text" tagParser="td:contains(工作地点)+td"/>
+        </field>
+        <field name="jobDescription"><!--工作简介-->
+            <source type="text" tagParser="div.mb10:eq(1)"/>
+        </field>
+        <field name="jobType"><!--职位类型-->
+            <source type="text" tagParser="td:contains(岗位类别)+td"/>
+        </field>
+        <field name="companyName"><!--公司名称-->
+            <source type="text" tagParser=".col-sub div.list-header"/>
+        </field>
+        <field name="companyIndustry"><!--公司规模-->
+            <source type="text" tagParser=".col-sub table"/>
+        </field>
+        <field name="companyDescription"><!--公司介绍-->
+            <source type="attr" attr="href" tagParser=".col-sub table td:contains(查看单位概况) a"/>
+        </field>
+        <field name="url">
+            <source type="url"/>
+        </field>
+    </job>
+
+    <!--list->content-->
+    <task id="hnrcsc" job="hnrcsc" sleep="1000">
+        <http method="get" charset="UTF-8" timeout="10000" responseType="html">
+            <header name="User-Agent"
+                    value="Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.31 (KHTML, like Gecko) Chrome/26.0.1410.64 Safari/537.31"/>
+        </http>
+        <source db="hnrcscList" field="url">
+            <parser type="match" url="http://www.hnrcsc.com%s"/>
+        </source>
+    </task>
+
+    <!--seed->List-->
+    <task id="hnrcscList" job="hnrcscList" sleep="5000">
+        <http method="get" charset="UTF-8" timeout="10000" responseType="html">
+            <header name="User-Agent"
+                    value="Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.31 (KHTML, like Gecko) Chrome/26.0.1410.64 Safari/537.31"/>
+        </http>
+                <page type="regex" listParser=".list tr"/>
+        <seeds>
+            <url>
+                <![CDATA[http://www.hnrcsc.com/web/seekjob/type-search-job!search.action?filter.position=05&d-16544-p=%d&n=ts&m=search]]></url>
+        </seeds>
+    </task>
+
+</website>
+
+

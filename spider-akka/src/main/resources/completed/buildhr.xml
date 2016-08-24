@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<website name="建筑英才网"><!--list->content的url部分为跳转-->
+    <!-- list 处理任务 -->
+    <job id="buildhrList" name="buildhrList" db="buildhrList">
+        <!-- type 分三种 text是文本内容, attr是属性,url 是从url中获取 -->
+        <!--   global 选配 默认false-->
+        <field name="jId" require="true">
+           <!-- <source type="attr" attr="infoid" tagParser="dd i"/>-->
+            <source type="attr" attr="href" tagParser="td.td_sp1 a"/>
+            <parser type="regex" match="/job/(\S+)"/>
+            <!--match -->
+        </field>
+        <field name="jobName">
+            <source type="text" tagParser="td.td_sp1 a"/>
+        </field>
+        <field name="companyName">
+            <source type="text" tagParser="td.td_sp2 a"/>
+        </field>
+        <field name="jobArea">
+            <source type="text" tagParser="li:contains(工作地点)"/>
+            <parser type="regex" match="工作地点：(\S+)"/>
+        </field>
+        <field name="url">
+            <source type="attr" attr="href" tagParser="td.td_sp1 a"/>
+        </field>
+        <field name="publishTime">
+            <source type="text" tagParser="td.td_sp2 var"/>
+        </field>
+    </job>
+
+    <!--content-->
+    <job id="buildhr" name="buildhr" db="buildhr">
+        <!-- type 分三种 text是文本内容, attr是属性,url 是从url中获取 -->
+        <!--   global 选配 默认false-->
+        <field name="jId" require="true">
+            <source type="url"/>
+            <parser type="regex" match="http://www.buildhr.com/job/(\S+)"/>
+            <!--<parser type="regex" match="([0-9]+)x.shtml"/>-->
+            <!--match -->
+        </field>
+        <field name="jobName">
+            <source type="text" tagParser=".wrap_title h1"/>
+        </field>
+        <field name="publishTime">
+            <source type="text" tagParser=".wrap_title_rt span"/>
+            <parser type="regex" match="更新日期：(\S+)"/>
+        </field>
+        <field name="jobSalary"><!--薪水-->
+            <source type="text" tagParser="li:contains(工资待遇)"/>
+            <parser type="regex" match="工资待遇：(\S+)"/>
+        </field>
+        <field name="jobArea">
+            <source type="text" tagParser=".company_info_wrap li:contains(工作地点)"/>
+            <parser type="regex" match="工作地点：(\S+)"/>
+        </field>
+<!--        <field name="jobType">&lt;!&ndash;职位类型&ndash;&gt;
+
+        </field>-->
+        <field name="companyName">
+            <source type="text" tagParser=".company_info_wrap h3 a"/>
+        </field>
+        <field name="companyIndustry">
+            <source type="text" tagParser="li:contains(公司规模)"/>
+            <parser type="regex" match="公司规模：(\S+)"/>
+        </field>
+        <field name="jobDescription">
+            <source type="text" tagParser=".zxd_jobinfo"/>
+        </field>
+        <field name="companyDescription">
+            <source type="text" tagParser=".company_profile"/>
+        </field>
+        <field name="url">
+            <source type="url"/>
+        </field>
+    </job>
+
+
+    <!--list->content-->
+    <task id="buildhr" job="buildhr" sleep="1000">
+        <http method="get" charset="GBK" timeout="10000" responseType="html">
+            <header name="User-Agent"
+                    value="Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.31 (KHTML, like Gecko) Chrome/26.0.1410.64 Safari/537.31"/>
+        </http>
+        <source db="buildhrList" field="url">
+            <parser type="match" url="http://www.buildhr.com%s"/>
+        </source>
+    </task>
+
+    <!--seed->List-->
+    <task id="buildhrList" job="buildhrList" sleep="5000">
+        <http method="get" charset="GBK" timeout="10000" responseType="html">
+            <header name="User-Agent"
+                    value="Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.31 (KHTML, like Gecko) Chrome/26.0.1410.64 Safari/537.31"/>
+        </http>
+        <page type="regex" listParser=".list_middle table"/>
+        <seeds>
+            <!--北京所有-->
+            <url>
+                <![CDATA[http://www.buildhr.com/so/11-240000-p%d/]]></url>
+        </seeds>
+    </task>
+
+</website>
+
+

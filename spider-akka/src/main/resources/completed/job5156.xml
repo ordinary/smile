@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<website name="智通人才">
+    <!-- list 处理任务 -->
+    <job id="job5156List" name="job5156List" db="job5156List">
+        <!-- type 分三种 text是文本内容, attr是属性,url 是从url中获取 -->
+        <!--   global 选配 默认false-->
+        <field name="jId" require="true">
+            <source type="attr" attr="href" tagParser=".t1 h3 a"/>
+            <parser type="regex" match="jobs/([0-9]+)"/>
+            <!--match -->
+        </field>
+        <field name="jobName"><!--工作名称-->
+            <source type="text" tagParser=".t1 h3 a"/>
+        </field>
+        <field name="companyName"><!--公司名称-->
+            <source type="text" tagParser=".t2 p.com a"/>
+        </field>
+        <field name="jobArea"><!--工作地点-->
+            <source type="text" tagParser=".t2 p.other span"/>
+        </field>
+        <field name="publishTime"><!--发布时间-->
+            <source type="text" tagParser=".t2 p.other span:contains(更新)"/>
+            <parser type="regex" match="更新于(\S+)"/>
+        </field>
+        <field name="url"><!--详情链接-->
+            <source type="attr" attr="href" tagParser=".t1 h3 a"/>
+        </field>
+    </job>
+
+    <!--content-->
+    <job id="job5156" name="job5156" db="job5156">
+        <!-- type 分三种 text是文本内容, attr是属性,url 是从url中获取 -->
+        <!--   global 选配 默认false-->
+        <field name="jId" require="true">
+            <source type="url"/><!--id-->
+            <parser type="regex" match="jobs/([0-9]+)"/><!--match -->
+        </field>
+        <field name="jobName"><!--工作名称-->
+            <source type="text" tagParser=".posTitBar h1"/>
+        </field>
+<!--        <field name="publishTime">&lt;!&ndash;发布时间&ndash;&gt;
+            <source type="text" tagParser=""/>
+        </field>-->
+        <field name="jobSalary"><!--薪水-->
+            <source type="text" tagParser=".Attributes p:contains(薪)"/>
+        </field>
+        <field name="jobArea"><!--工作地点-->
+            <source type="text" tagParser=".Attributes p:contains(地点)"/>
+        </field>
+        <field name="jobDescription"><!--工作简介-->
+            <source type="text" tagParser="div.tabContItem #posDesc"/>
+        </field>
+        <field name="jobType"><!--职位类型-->
+            <source type="text" tagParser="div.tabContItem:contains(职位类别) p"/>
+            <parser type="regex" match="职位类别：(\S*)" />
+        </field>
+        <field name="companyName"><!--公司名称-->
+            <source type="text" tagParser=".comTitle h2"/>
+        </field>
+        <field name="companyIndustry"><!--公司规模-->
+            <source type="text" tagParser=".comInfo p"/>
+        </field>
+        <field name="companyDescription"><!--公司介绍-->
+            <source type="text" tagParser="div.tabContItem .cont"/>
+        </field>
+        <field name="url">
+            <source type="url"/>
+        </field>
+    </job>
+
+    <!--list->content-->
+    <task id="job5156" job="job5156" sleep="10000">
+        <http method="get" charset="UTF-8" timeout="100000" responseType="html">
+            <header name="User-Agent"
+                    value="Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.31 (KHTML, like Gecko) Chrome/26.0.1410.64 Safari/537.31"/>
+        </http>
+        <source db="job5156List" field="url">
+            <parser type="field"/>
+        </source>
+    </task>
+
+    <!--seed->List-->
+    <task id="job5156List" job="job5156List" sleep="2000">
+        <http method="get" charset="UTF-8" timeout="100000" responseType="html">
+            <header name="User-Agent"
+                    value="Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.31 (KHTML, like Gecko) Chrome/26.0.1410.64 Safari/537.31"/>
+        </http>
+        <page type="regex" listParser=".search_main div.item"/>
+        <seeds>
+            <url>
+                <![CDATA[http://s.job5156.com/s/p/result?pn=%d]]></url>
+        </seeds>
+    </task>
+
+</website>
+
+

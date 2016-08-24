@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<website name="新安人才网"><!--list->content的url部分为跳转-->
+    <!-- list 处理任务 -->
+    <job id="goodjobsList" name="goodjobsList" db="goodjobsList">
+        <field name="jId" require="true">
+            <source type="attr" attr="href" tagParser="td a.fwb"/>
+            <parser type="regex" match="jobID=([0-9]+)"/>
+        </field>
+        <field name="jobName">
+            <source type="text" tagParser="td a.fwb"/>
+        </field>
+        <field name="companyName">
+            <source type="text" tagParser="td a.a07"/>
+        </field>
+        <field name="jobArea">
+            <source type="text" tagParser="td+td+td+td"/>
+        </field>
+        <field name="url">
+            <source type="attr" attr="href" tagParser="td a.fwb"/>
+        </field>
+        <field name="publishTime">
+            <source type="text" tagParser="td+td+td+td+td"/>
+        </field>
+    </job>
+
+    <!--content-->
+    <job id="goodjobs" name="goodjobs" db="goodjobs">
+        <field name="jId" require="true">
+            <source type="url"/>
+            <parser type="regex" match="jobID=([0-9]+)"/>
+        </field>
+        <field name="jobName">
+            <source type="text" tagParser="div.zwm2,div.zwm"/>
+        </field>
+        <field name="publishTime">
+            <source type="text" tagParser="div.font3,div.f14 table tr td:contains(发布日期)"/>
+            <parser type="regex" match="发布日期：(\S+)"/>
+        </field>
+        <field name="jobSalary"><!--薪水-->
+            <source type="text" tagParser="div.font3,div.f14 table tr td:contains(月　　薪)"/>
+            <parser type="regex" match="月　　薪：(\S+)"/>
+        </field>
+        <field name="jobArea">
+            <source type="text" tagParser="div.font3,div.f14 table tr td:contains(工作地点)"/>
+            <parser type="regex" match="工作地点：(\S+)"/>
+        </field>
+        <field name="jobType"><!--职位类型-->
+            <source type="text" tagParser="div.font3,div.f14 table tr td:  (工作性质)"/>
+            <parser type="regex" match="工作性质：(\S+)"/>
+        </field>
+        <field name="companyName">
+            <source type="text" tagParser="a[href~=.+corpID=[0-9]+]"/>
+        </field>
+        <field name="companyIndustry">
+            <source type="text" tagParser="div.w250,div.w510"/>
+        </field>
+        <field name="jobDescription">
+            <source type="text" tagParser="div.w620:contains(岗位要求),p.duol"/>
+        </field>
+        <field name="companyDescription">
+            <source type="text" tagParser="div.dt:contains(公司简介),p.wdr"/>
+        </field>
+        <field name="url">
+            <source type="url"/>
+        </field>
+    </job>
+
+
+    <!--list->content-->
+    <task id="goodjobs" job="goodjobs" sleep="1000">
+        <http method="get" charset="GBK" timeout="10000" responseType="html">
+            <header name="User-Agent"
+                    value="Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.31 (KHTML, like Gecko) Chrome/26.0.1410.64 Safari/537.31"/>
+        </http>
+        <source db="goodjobsList" field="url">
+            <parser type="field"/>
+        </source>
+    </task>
+
+    <!--seed->List-->
+    <task id="goodjobsList" job="goodjobsList" sleep="5000">
+        <http method="get" charset="GBK" timeout="10000" responseType="html">
+            <header name="User-Agent"
+                    value="Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.31 (KHTML, like Gecko) Chrome/26.0.1410.64 Safari/537.31"/>
+        </http>
+        <page type="regex" listParser="table.table_filter tr"/>
+        <seeds>
+            <url>
+                <![CDATA[http://search.goodjobs.cn/index.php?industrytype=246&page=%d]]></url>
+        </seeds>
+    </task>
+
+</website>
+
+

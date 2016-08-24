@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?><!--post请求-->
+<website name="西安人才公共服务网"><!--list->content的url部分为跳转-->
+    <!-- list 处理任务 -->
+    <job id="xasrcList" name="xasrcList" db="xasrcList">
+        <field name="jId" require="true">
+            <source type="attr" attr="href" tagParser="td+td+td+td a"/>
+            <parser type="regex" match="posid=([0-9]+)"/>
+        </field>
+        <field name="jobName">
+            <source type="text" tagParser="td+td+td+td a"/>
+        </field>
+        <field name="companyName">
+            <source type="text" tagParser="td+td+td"/>
+        </field>
+        <field name="jobArea">
+            <source type="text" tagParser="td+td+td+td+td+td+td+td"/>
+        </field>
+        <field name="url">
+            <source type="attr" attr="href" tagParser="td+td+td+td a"/>
+        </field>
+        <field name="publishTime">
+            <source type="text" tagParser="td+td+td+td+td+td"/>
+        </field>
+    </job>
+
+    <!--content-->
+    <job id="xasrc" name="xasrc" db="xasrc">
+        <field name="jId" require="true">
+            <source type="url"/>
+            <parser type="regex" match="posid=([0-9]+)"/>
+        </field>
+        <field name="jobName">
+            <source type="text" tagParser="td[width=60%]"/>
+        </field>
+        <field name="publishTime">
+            <source type="text" tagParser="td[width=60%]+td"/>
+            <parser type="regex" match="发布日期：(\S+)"/>
+        </field>
+        <field name="jobSalary"><!--薪水-->
+            <source type="text" tagParser="table[width=99%] td:contains(薪酬待遇)+td"/>
+            <parser type="regex" match="薪酬待遇\W+：(\S+)"/>
+        </field>
+        <field name="jobArea">
+            <source type="text" tagParser="table[width=99%] td:contains(基本信息)+td"/>
+            <parser type="regex" match="，(\S+)工作"/>
+        </field>
+<!--        <field name="jobType">&lt;!&ndash;职位类型&ndash;&gt;
+            <source type="text" tagParser=".job-cnt ul li:contains(职位类别)"/>
+            <parser type="regex" match="职位类别：(.+)"/>
+        </field>-->
+<!--        <field name="companyName">
+            <source type="text" tagParser="#bodyContentPane div"/>
+        </field>-->
+<!--        <field name="companyIndustry">
+            <source type="text" tagParser="#bodyContentPane div+div"/>
+        </field>-->
+        <field name="jobDescription">
+            <source type="text" tagParser="table[width=99%] td:contains(职位描述)+td"/>
+        </field>
+        <!--<field name="companyDescription">-->
+            <!--<source type="attr" attr="href" tagParser="#bodyContentPane div+div"/>-->
+        <!--</field>-->
+        <field name="url">
+            <source type="url"/>
+        </field>
+    </job>
+
+
+    <!--list->content-->
+    <task id="xasrc" job="xasrc" sleep="1000">
+        <http method="get" charset="UTF-8" timeout="10000" responseType="html">
+            <header name="User-Agent"
+                    value="Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.31 (KHTML, like Gecko) Chrome/26.0.1410.64 Safari/537.31"/>
+        </http>
+        <source db="xasrcList" field="url">
+            <parser type="match" url="http://www.haorc.com%s"/>
+        </source>
+    </task>
+
+    <!--seed->List-->
+    <task id="xasrcList" job="xasrcList" sleep="5000">
+        <http method="get" charset="UTF-8" timeout="10000" responseType="html">
+            <header name="User-Agent"
+                    value="Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.31 (KHTML, like Gecko) Chrome/26.0.1410.64 Safari/537.31"/>
+        </http>
+        <page type="regex" listParser="td[colspan=10] table tr"/>
+        <seeds>
+            <!--北京所有-->
+            <url>
+                <![CDATA[http://www.haorc.com/jobs/searcher/searchResult.asp?pagenum=%d]]></url>
+        </seeds>
+    </task>
+
+</website>
+
+

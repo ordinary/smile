@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<website name="中国建筑人才网"><!--list->content的url部分为跳转-->
+    <!-- list 处理任务 -->
+    <job id="buildjobList" name="buildjobList" db="buildjobList">
+        <!-- type 分三种 text是文本内容, attr是属性,url 是从url中获取 -->
+        <!--   global 选配 默认false-->
+        <field name="jId" require="true">
+           <!-- <source type="attr" attr="infoid" tagParser="dd i"/>-->
+            <source type="attr" attr="href" tagParser="td.job_name span a"/>
+            <parser type="regex" match="/resume/util/(\S+)"/>
+            <!--match -->
+        </field>
+        <field name="jobName">
+            <source type="text" tagParser="td.job_name span a"/>
+        </field>
+        <field name="companyName">
+            <source type="text" tagParser="td.company_name span a"/>
+        </field>
+        <field name="jobArea">
+            <source type="text" tagParser="td.job_place"/>
+        </field>
+        <field name="url">
+            <source type="attr" attr="href" tagParser="td.job_name span a"/>
+        </field>
+        <field name="publishTime">
+            <source type="text" tagParser="td.job_time"/>
+        </field>
+    </job>
+
+    <!--content-->
+    <job id="buildjob" name="buildjob" db="buildjob">
+        <!-- type 分三种 text是文本内容, attr是属性,url 是从url中获取 -->
+        <!--   global 选配 默认false-->
+        <field name="jId" require="true">
+            <source type="url"/>
+            <parser type="regex" match="http://www.buildjob.net/resume/util/(\S+)"/>
+            <!--<parser type="regex" match="([0-9]+)x.shtml"/>-->
+            <!--match -->
+        </field>
+        <field name="jobName">
+            <source type="text" tagParser="td:contains(招聘职位)+td"/>
+        </field>
+        <field name="publishTime">
+            <source type="text" tagParser="td:contains(招聘日期)+td"/>
+           <!-- <parser type="regex" match="期限:(\S+)"/>-->
+        </field>
+        <field name="jobSalary"><!--薪水-->
+            <source type="text" tagParser="td:contains(薪资待遇)+td"/>
+        </field>
+        <field name="jobArea">
+            <source type="text" tagParser="td:contains(工作地点)+td"/>
+        </field>
+<!--        <field name="jobType">&lt;!&ndash;职位类型&ndash;&gt;
+
+        </field>-->
+        <field name="companyName">
+            <source type="text" tagParser="h1.job_show_title a"/>
+        </field>
+        <field name="jobDescription">
+            <source type="text" tagParser="dl.job_detail"/>
+        </field>
+        <field name="companyDescription">
+            <source type="attr" attr="href" tagParser="h1.job_show_title a"/>
+        </field>
+        <field name="url">
+            <source type="url"/>
+        </field>
+    </job>
+
+
+    <!--list->content-->
+    <task id="buildjob" job="buildjob" sleep="1000">
+        <http method="get" charset="UTF-8" timeout="10000" responseType="html">
+            <header name="User-Agent"
+                    value="Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.31 (KHTML, like Gecko) Chrome/26.0.1410.64 Safari/537.31"/>
+        </http>
+        <source db="buildjobList" field="url">
+            <parser type="match" url="http://www.buildjob.net%s"/>
+        </source>
+    </task>
+
+    <!--seed->List-->
+    <task id="buildjobList" job="buildjobList" sleep="5000">
+        <http method="get" charset="UTF-8" timeout="10000" responseType="html">
+            <header name="User-Agent"
+                    value="Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.31 (KHTML, like Gecko) Chrome/26.0.1410.64 Safari/537.31"/>
+        </http>
+        <page type="regex" listParser="table.searchlist_table tr"/>
+        <seeds>
+            <url>
+                <![CDATA[http://www.buildjob.net/public/A0100_T2_P%d/]]></url>
+        </seeds>
+    </task>
+
+</website>
+
+

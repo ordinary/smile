@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<website name="中国服装人才网"><!--list->content的url部分为跳转-->
+    <!-- list 处理任务 -->
+    <job id="cfwList" name="cfwList" db="cfwList">
+        <!-- type 分三种 text是文本内容, attr是属性,url 是从url中获取 -->
+        <!--   global 选配 默认false-->
+        <field name="jId" require="true">
+           <!-- <source type="attr" attr="infoid" tagParser="dd i"/>-->
+            <source type="attr" attr="href" tagParser="td.list-job-nane a"/>
+            <!--match -->
+        </field>
+        <field name="jobName">
+            <source type="text" tagParser="td.list-job-nane a"/>
+        </field>
+        <field name="companyName">
+            <source type="text" tagParser="td.list-job-nane+td a"/>
+        </field>
+        <field name="jobArea">
+            <source type="text" tagParser="td.list-job-nane+td+td span"/>
+        </field>
+        <field name="url">
+            <source type="attr" attr="href" tagParser="td.list-job-nane a"/>
+        </field>
+        <field name="publishTime">
+            <source type="text" tagParser="td.list-job-nane+td+td+td span"/>
+        </field>
+    </job>
+
+    <!--content-->
+    <job id="cfw" name="cfw" db="cfw">
+        <!-- type 分三种 text是文本内容, attr是属性,url 是从url中获取 -->
+        <!--   global 选配 默认false-->
+        <field name="jId" require="true">
+            <source type="url"/>
+            <parser type="regex" match="http://www.cfw.cn(\S+)"/>
+            <!--<parser type="regex" match="([0-9]+)x.shtml"/>-->
+            <!--match -->
+        </field>
+        <field name="jobName">
+            <source type="text" tagParser=".caption-title h3"/>
+        </field>
+        <field name="publishTime">
+            <source type="text" tagParser="dt:contains(招聘日期)+dd"/>
+        </field>
+        <field name="jobSalary"><!--薪水-->
+            <source type="text" tagParser="dt:contains(薪)+dd"/>
+        </field>
+        <field name="jobArea">
+            <source type="text" tagParser="dt:contains(工作地点)+dd"/>
+        </field>
+        <field name="companyDescription">
+            <source type="text" tagParser="dt:contains(公司简介)+dd"/>
+        </field>
+        <field name="companyName">
+            <source type="text" tagParser=".caption-title h3+span a"/>
+        </field>
+        <field name="jobDescription">
+            <source type="text" tagParser="dt:contains(职位描述)+dd"/>
+        </field>
+        <field name="url">
+            <source type="url"/>
+        </field>
+    </job>
+
+
+    <!--list->content-->
+    <task id="cfw" job="cfw" sleep="1000">
+        <http method="get" charset="UTF-8" timeout="10000" responseType="html">
+            <header name="User-Agent"
+                    value="Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.31 (KHTML, like Gecko) Chrome/26.0.1410.64 Safari/537.31"/>
+        </http>
+        <source db="cfwList" field="url">
+            <parser type="match" url="http://www.cfw.cn%s"/>
+        </source>
+    </task>
+
+    <!--seed->List-->
+    <task id="cfwList" job="cfwList" sleep="5000">
+        <http method="get" charset="UTF-8" timeout="10000" responseType="html">
+            <header name="User-Agent"
+                    value="Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.31 (KHTML, like Gecko) Chrome/26.0.1410.64 Safari/537.31"/>
+        </http>
+        <page type="regex" listParser="div.col-lg-9 table tr"/>
+        <seeds>
+            <url>
+                <![CDATA[http://www.cfw.cn/zhaopin/Search?page=%d&keyType=1]]></url>
+        </seeds>
+    </task>
+
+        </website>
+
+

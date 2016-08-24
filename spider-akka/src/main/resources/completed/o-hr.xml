@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<website name="苏州人才新干线"><!--list->content的url部分为跳转-->
+    <!-- list 处理任务 -->
+    <job id="o-hrList" name="o-hrList" db="o-hrList">
+        <field name="jId" require="true">
+            <source type="attr" attr="href" tagParser="td+td a"/>
+            <parser type="regex" match="(\S+).html"/>
+        </field>
+        <field name="jobName">
+            <source type="text" tagParser="td+td a"/>
+        </field>
+        <field name="companyName">
+            <source type="text" tagParser="td+td+td a"/>
+        </field>
+        <field name="jobArea">
+            <source type="text" tagParser="td+td+td+td"/>
+        </field>
+        <field name="publishTime">
+            <source type="text" tagParser="td+td+td+td+td+td"/>
+        </field>
+        <field name="url">
+            <source type="attr" attr="href" tagParser="td+td a"/>
+        </field>
+    </job>
+
+    <!--content-->
+    <job id="o-hr" name="o-hr" db="o-hr">
+        <field name="jId" require="true">
+            <source type="url"/>
+            <parser type="regex" match="http://www.o-hr.cn/recruit/(\S+).html"/>
+        </field>
+        <field name="jobName">
+            <source type="text" tagParser="table table table table table:contains(职位信息) tr"/>
+        </field>
+        <field name="publishTime">
+            <source type="text" tagParser="table table table table table table td:contains(发布日期)"/>
+            <parser type="regex" match="发布日期：(\S+)"/>
+        </field>
+<!--        <field name="jobSalary">&lt;!&ndash;薪水&ndash;&gt;
+            <source type="text" tagParser="#container table table table table tr:contains(参考月薪)"/>
+            <parser type="regex" match="参考月薪： (.+)"/>
+        </field>-->
+        <field name="jobArea">
+            <source type="text" tagParser="table table table table table table td:contains(工作地点)"/>
+            <parser type="regex" match="工作地点：(.+)"/>
+        </field>
+        <field name="jobType"><!--职位类型-->
+            <source type="text" tagParser="table table table table table table td:contains(招聘方式)"/>
+            <parser type="regex" match="招聘方式：(.+)"/>
+        </field>
+        <field name="jobDescription">
+            <source type="text" tagParser="table table table table table table td:contains(任职要求)+td"/>
+        </field>
+        <field name="companyName">
+            <source type="text" tagParser="table table table table table tr:contains(企业介绍) td"/>
+        </field>
+<!--        <field name="companyIndustry">
+            <source type="text" tagParser="#container table table table tr:contains(单位简介)+tr"/>
+        </field>-->
+        <field name="companyDescription">
+            <source type="text" tagParser="table table table table tr:contains(企业介绍)+tr"/>
+        </field>
+        <field name="url">
+            <source type="url"/>
+        </field>
+    </job>
+
+
+    <!--list->content-->
+    <task id="o-hr" job="o-hr" sleep="1000">
+        <http method="get" charset="GBK" timeout="10000" responseType="html">
+            <header name="User-Agent"
+                    value="Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.31 (KHTML, like Gecko) Chrome/26.0.1410.64 Safari/537.31"/>
+        </http>
+        <source db="o-hrList" field="url">
+            <parser type="match" url="http://www.o-hr.cn/recruit/%s"/>
+        </source>
+    </task>
+
+    <!--seed->List-->
+    <task id="o-hrList" job="o-hrList" sleep="5000">
+        <http method="get" charset="GBK" timeout="10000" responseType="html">
+            <header name="User-Agent"
+                    value="Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.31 (KHTML, like Gecko) Chrome/26.0.1410.64 Safari/537.31"/>
+        </http>
+        <page type="regex" listParser="#list tr"/>
+        <seeds>
+            <url>
+                <![CDATA[http://www.o-hr.cn/recruit/joblist.php?page=%d]]></url>
+        </seeds>
+    </task>
+
+</website>
+
+

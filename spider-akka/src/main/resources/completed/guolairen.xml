@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<website name="过来人">
+    <!-- list 处理任务 -->
+    <job id="guolairenList" name="guolairenList" db="guolairenList">
+        <field name="jId" require="true">
+            <source type="attr" attr="href" tagParser="div.jobname strong a"/>
+            <parser type="regex" match="/zhiwei/([0-9]+).html"/>
+            <!--match -->
+        </field>
+        <field name="jobName"><!--工作名称-->
+            <source type="text" tagParser="div.jobname strong a"/>
+        </field>
+        <field name="companyName"><!--公司名称-->
+            <source type="text" tagParser="div.com a"/>
+        </field>
+        <field name="jobArea"><!--工作地点-->
+            <source type="text" tagParser="div.txt p"/>
+            <parser type="regex" match="工作地点：([\u4e00-\u9fa5\u002f\u0020]+)[\u0020]"/>
+        </field>
+        <field name="publishTime"><!--发布时间-->
+            <source type="text" tagParser=".date"/>
+            <parser type="interface" interfaceName="source"/>
+        </field>
+        <field name="url"><!--详情链接-->
+            <source type="attr" attr="href" tagParser="div.jobname strong a"/>
+        </field>
+    </job>
+
+    <!--content-->
+    <job id="guolairen" name="guolairen" db="guolairen">
+        <!-- type 分三种 text是文本内容, attr是属性,url 是从url中获取 -->
+        <!--   global 选配 默认false-->
+        <field name="jId" require="true">
+            <source type="url"/>
+            <!--id-->
+            <parser type="regex" match="([0-9]+).html"/>
+            <!--match -->
+        </field>
+        <field name="jobName"><!--工作名称-->
+            <source type="text" tagParser=".company-head h1"/>
+            <parser type="regex" match="(.+)[\u3010]"/>
+        </field>
+        <field name="publishTime"><!--发布时间-->
+            <source type="text" tagParser=".pos-attribute li:contains(更新日期)"/>
+        </field>
+        <field name="jobSalary"><!--薪水-->
+            <source type="text" tagParser=".pos-attribute li:contains(薪)"/>
+        </field>
+        <field name="jobArea"><!--工作地点-->
+            <source type="text" tagParser=".pos-attribute li:contains(地区)"/>
+        </field>
+        <field name="jobDescription"><!--工作简介-->
+            <source type="text" tagParser=".pos-description"/>
+        </field>
+        <field name="jobType"><!--职位类型-->
+            <source type="text" tagParser=".pos-attribute li:contains(类型)"/>
+        </field>
+        <field name="companyName"><!--公司名称-->
+            <source type="text" tagParser=".company-head h1"/>
+            <parser type="regex" match="[\u3010](\S+)[\u3011]"/>
+        </field>
+        <!--        <field name="companyIndustry">&lt;!&ndash;公司规模&ndash;&gt;
+                    <source type="text" tagParser=""/>
+                </field>-->
+        <field name="companyDescription"><!--公司介绍-->
+            <source type="attr" attr="href" tagParser="#cnav-intro"/>
+        </field>
+        <field name="url">
+            <source type="url"/>
+        </field>
+    </job>
+
+    <!--list->content-->
+    <task  id ="guolairen" job="guolairen" sleep="2000">
+        <http method="get" charset="UTF-8" timeout="100000" responseType="html">
+            <header name="User-Agent"
+                    value="Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.31 (KHTML, like Gecko) Chrome/26.0.1410.64 Safari/537.31"/>
+        </http>
+        <source db="guolairenList" field="url">
+            <parser type="match" url="http://www.guolairen.com%s"/>
+        </source>
+    </task>
+
+    <!--seed->List-->
+    <task id="guolairenList" job="guolairenList" sleep="2000">
+        <http method="get" charset="UTF-8" timeout="100000" responseType="html">
+            <header name="User-Agent"
+                    value="Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.31 (KHTML, like Gecko) Chrome/26.0.1410.64 Safari/537.31"/>
+        </http>
+        <page type="regex" listParser=".search-list div.list"/>
+        <seeds>
+            <url><![CDATA[http://www.guolairen.com/zhaopin/zhaopin-list.php?page=%d]]></url>
+        </seeds>
+    </task>
+
+</website>
+
+

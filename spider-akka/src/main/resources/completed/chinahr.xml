@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<website name="中华英才网">
+    <!-- list 处理任务 -->
+    <job id="chinahrList" name="chinahrList" db="chinahrList">
+        <!-- type 分三种 text是文本内容, attr是属性,url 是从url中获取 -->
+        <!--   global 选配 默认false-->
+        <field name="jId" require="true">
+            <source type="attr" attr="href" tagParser=".joblist_jobname a"/>
+            <parser type="regex" match="http://www.chinahr.com/job/(\S+).html"/>
+            <!--match -->
+        </field>
+        <field name="jobName"><!--工作名称-->
+            <source type="text" tagParser=".joblist_jobname a"/>
+        </field>
+        <field name="companyName"><!--公司名称-->
+            <source type="text" tagParser=".js_com_name"/>
+        </field>
+        <field name="jobArea"><!--工作地点-->
+            <source type="text" tagParser="td:eq(4)"/>
+        </field>
+        <field name="publishTime"><!--发布时间-->
+            <source type="text" tagParser="td:eq(5)"/>
+        </field>
+        <field name="url"><!--详情链接-->
+            <source type="attr" attr="href" tagParser=".joblist_jobname a"/>
+        </field>
+    </job>
+
+    <!--content-->
+    <job id="chinahr" name="chinahr" db="chinahr">
+        <!-- type 分三种 text是文本内容, attr是属性,url 是从url中获取 -->
+        <!--   global 选配 默认false-->
+        <field name="jId" require="true">
+            <source type="url"/><!--id-->
+            <parser type="regex" match="http://www.chinahr.com/job/(\S+).html"/><!--match -->
+        </field>
+        <field name="jobName"><!--工作名称-->
+            <source type="text" tagParser=".job_infoLeft h1"/>
+        </field>
+        <field name="publishTime"><!--发布时间-->
+            <source type="text" tagParser=".detail_C_Date"/>
+        </field>
+        <field name="jobSalary"><!--薪水-->
+            <source type="text" tagParser=".detail_C_info span:contains(薪资) strong"/>
+        </field>
+        <field name="jobArea"><!--工作地点-->
+            <source type="text" tagParser=".infoMa:contains(地点) a"/>
+        </field>
+        <field name="jobDescription"><!--工作简介-->
+            <source type="text" tagParser=".job_desc"/>
+        </field>
+       <!-- <field name="jobType">&lt;!&ndash;职位类型&ndash;&gt;
+            <source type="text" tagParser=""/>
+        </field>-->
+        <field name="companyName"><!--公司名称-->
+            <source type="text" tagParser=".job_infoLeft span.subC_name"/>
+        </field>
+        <field name="companyIndustry"><!--公司规模-->
+            <source type="text" tagParser=".detail_R_cList"/>
+        </field>
+        <field name="companyDescription"><!--公司介绍-->
+            <source type="attr" attr="href" tagParser="detail_R_cName a"/>
+        </field>
+        <field name="url">
+            <source type="url"/>
+        </field>
+    </job>
+
+    <!--list->content-->
+    <task id="chinahr" job="chinahr" sleep="1000">
+        <http method="get" charset="UTF-8" timeout="10000" responseType="html">
+            <header name="User-Agent"
+                    value="Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.31 (KHTML, like Gecko) Chrome/26.0.1410.64 Safari/537.31"/>
+        </http>
+        <source db="chinahrList" field="url">
+            <parser type="field"/>
+        </source>
+    </task>
+
+    <!--seed->List-->
+    <task id="chinahrList" job="chinahrList" sleep="5000">
+        <http method="get" charset="UTF-8" timeout="10000" responseType="html">
+            <header name="User-Agent"
+                    value="Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.31 (KHTML, like Gecko) Chrome/26.0.1410.64 Safari/537.31"/>
+        </http>
+        <page type="regex" listParser=".joblist_showlist"/>
+        <seeds>
+            <url>
+                <![CDATA[http://www.chinahr.com/jobs/10000/%d/]]></url>
+        </seeds>
+    </task>
+
+</website>
+
+

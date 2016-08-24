@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<website name="赶集网招聘">
+    <!-- list 处理任务 -->
+    <job id="ganjiList" name="ganjiList" db="ganjiList">
+        <!-- type 分三种 text是文本内容, attr是属性,url 是从url中获取 -->
+        <!--   global 选配 默认false-->
+        <field name="jId" require="true">
+            <!--<source type="attr" attr="puid" tagParser="dt a"/>-->
+            <source type="attr" attr="href" tagParser="dt a"/>
+            <!--match -->
+        </field>
+        <field name="jobName">
+            <source type="text" tagParser="dt a"/>
+        </field>
+        <field name="companyName">
+            <source type="text" tagParser="dd.company"/>
+        </field>
+        <field name="jobArea">
+            <source type="text" tagParser="dd.pay"/>
+        </field>
+        <field name="publishTime">
+            <source type="text" tagParser="dd.pub-time"/>
+            <parser type="interface" interfaceName="source"/>
+        </field>
+        <field name="url">
+            <source type="attr" attr="href" tagParser="dt a"/>
+        </field>
+    </job>
+
+    <!--content-->
+    <job id="ganji" name="ganji" db="ganji">
+        <!-- type 分三种 text是文本内容, attr是属性,url 是从url中获取 -->
+        <!--   global 选配 默认false-->
+        <field name="jId" require="true">
+            <source type="url"/>
+           <!-- <parser type="regex" match="/([0-9]+)x.htm"/>-->
+            <!--match -->
+        </field>
+        <field name="jobName">
+            <source type="text" tagParser="ul.pos-relat li.fl:contains(职位名称) em"/>
+        </field>
+        <field name="publishTime">
+            <source type="text" tagParser=".d-c-left-hear p span:eq(0)"/>
+            <parser type="interface" interfaceName="source"/>
+        </field>
+        <field name="jobSalary"><!--薪水-->
+            <source type="text" tagParser="ul.pos-relat li.fl:contains(薪) em"/>
+        </field>
+        <field name="jobArea">
+            <source type="text" tagParser="ul.pos-relat li.fl:contains(工作地点) em"/>
+        </field>
+<!--        <field name="jobType">&lt;!&ndash;职位类型&ndash;&gt;
+            <source type="text" tagParser=""/>
+        </field>-->
+        <field name="jobDescription">
+            <source type="text" tagParser=".js-tab-show div.deta-Corp"/><!--jSoup不能连用两个class*.js-tab-show .deta-Corp*-->
+        </field>
+        <field name="companyName">
+            <source type="text" tagParser=".d-c-left-hear h1"/>
+        </field>
+        <field name="companyIndustry">
+            <source type="text" tagParser=".ad-firm-logo"/>
+        </field>
+        <field name="companyDescription">
+                <source type="text" tagParser="#description-compy"/>
+        </field>
+        <field name="url">
+            <source type="url"/>
+        </field>
+    </job>
+
+
+    <!--list->content-->
+    <!--<task id="ganji" job="ganji" sleep="1000">-->
+        <!--<http method="get" charset="UTF-8" timeout="10000" responseType="html">-->
+            <!--<header name="User-Agent"-->
+                    <!--value="Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.31 (KHTML, like Gecko) Chrome/26.0.1410.64 Safari/537.31"/>-->
+        <!--</http>-->
+        <!--<source db="ganjiList" field="url">-->
+            <!--<parser type="field"/>-->
+        <!--</source>-->
+    <!--</task>-->
+
+    <!--seed->List-->
+    <task id="ganjiList" job="ganjiList" sleep="10">
+        <http method="get" charset="UTF-8" timeout="10000" responseType="html">
+            <header name="User-Agent"
+                    value="Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.31 (KHTML, like Gecko) Chrome/26.0.1410.64 Safari/537.31"/>
+        </http>
+        <page type="regex" listParser="#list-job-id dl"/>
+        <seeds>
+            <url>
+                <![CDATA[http://bj.ganji.com/zpshichangyingxiao/o%d/]]></url>
+        </seeds>
+    </task>
+
+</website>
+
+

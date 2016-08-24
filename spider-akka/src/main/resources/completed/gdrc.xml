@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<website name="广东人才网">
+    <!-- list 处理任务 -->
+    <job id="gdrcList" name="gdrcList" db="gdrcList">
+        <!-- type 分三种 text是文本内容, attr是属性,url 是从url中获取 -->
+        <!--   global 选配 默认false-->
+        <field name="jId" require="true">
+            <source type="attr" attr="href" tagParser="h2 a"/>
+            <parser type="regex" match="/job/([0-9]+).html"/>
+            <!--match -->
+        </field>
+        <field name="jobName"><!--工作名称-->
+            <source type="text" tagParser="h2 a"/>
+        </field>
+        <field name="companyName"><!--公司名称-->
+            <source type="text" tagParser="p.text_company strong"/>
+        </field>
+        <field name="jobArea"><!--工作地点-->
+            <source type="text" tagParser="p.text_company span.f12-color-orange "/>
+        </field>
+        <field name="publishTime"><!--发布时间-->
+            <source type="text" tagParser="td.results_info p span.f12-color-orange"/>
+        </field>
+        <field name="url"><!--详情链接-->
+            <source type="attr" attr="href" tagParser="h2 a"/>
+        </field>
+    </job>
+
+    <!--content-->
+    <job id="gdrc" name="gdrc" db="gdrc">
+        <!-- type 分三种 text是文本内容, attr是属性,url 是从url中获取 -->
+        <!--   global 选配 默认false-->
+        <field name="jId" require="true">
+            <source type="url"/>
+            <parser type="regex" match="j_id=([0-9]+)"/>
+            <!--match -->
+        </field>
+        <field name="jobName"><!--工作名称-->
+            <source type="text" tagParser="h1.position_name"/>
+        </field>
+        <field name="publishTime"><!--发布时间-->
+            <source type="text" tagParser=".posInfo td:contains(发布日期)+td"/>
+        </field>
+        <field name="jobSalary"><!--薪水-->
+            <source type="text" tagParser=".posInfo td:contains(薪资待遇)+td"/>
+        </field>
+        <field name="jobArea"><!--工作地点-->
+            <source type="text" tagParser=".posInfo td:contains(工作地区)+td"/>
+        </field>
+        <field name="jobDescription"><!--工作简介-->
+            <source type="text" tagParser="div.posDesc"/>
+        </field>
+<!--        <field name="jobType">&lt;!&ndash;职位类型&ndash;&gt;
+            <source type="text" tagParser=".gs_zp_table th:contains(工作性质)+td"/>
+        </field>-->
+        <field name="companyName"><!--公司名称-->
+            <source type="text" tagParser=".company_name"/>
+        </field>
+        <field name="companyIndustry"><!--公司规模-->
+            <source type="text" tagParser=".company_industry"/>
+        </field>
+        <field name="companyDescription"><!--公司介绍-->
+            <source type="attr" attr="href" tagParser=".company_homepage"/>
+        </field>
+        <field name="url">
+            <source type="url"/>
+        </field>
+    </job>
+
+    <!--list->content-->
+    <task id="gdrc" job="gdrc" sleep="10000">
+        <http method="get" charset="GBK" timeout="1000" responseType="html">
+            <header name="User-Agent"
+                    value="Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.31 (KHTML, like Gecko) Chrome/26.0.1410.64 Safari/537.31"/>
+        </http>
+        <source db="gdrcList" field="jId">
+            <parser type="match" url="http://www.gdrc.com/job.do?j_id=%s"/>
+        </source>
+    </task>
+
+    <!--seed->List-->
+    <task id="gdrcList" job="gdrcList" sleep="5000">
+        <http method="get" charset="GBK" timeout="10000" responseType="html">
+            <header name="User-Agent"
+                    value="Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.31 (KHTML, like Gecko) Chrome/26.0.1410.64 Safari/537.31"/>
+        </http>
+        <page type="regex" listParser="div.search_results"/>
+        <seeds>
+            <url>
+                <![CDATA[http://www.gdrc.com/search/_0______90______%d.html]]></url>
+        </seeds>
+    </task>
+
+</website>
+
+

@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<website name="中国就业网"><!--list->content的url部分为跳转-->
+    <!-- list 处理任务 -->
+    <job id="cjobList" name="cjobList" db="cjobList">
+        <!-- type 分三种 text是文本内容, attr是属性,url 是从url中获取 -->
+        <!--   global 选配 默认false-->
+        <field name="jId" require="true">
+           <!-- <source type="attr" attr="infoid" tagParser="dd i"/>-->
+            <source type="attr" attr="href" tagParser="li.list_con_tit a"/>
+            <parser type="regex" match="/job/(\S+)"/>
+            <!--match -->
+        </field>
+        <field name="jobName">
+            <source type="text" tagParser="li.list_con_tit a"/>
+        </field>
+        <field name="companyName">
+            <source type="text" tagParser="li.list_con_tit a+br+a"/>
+        </field>
+        <field name="jobArea">
+            <source type="text" tagParser="li.jobs_pay span.c999"/>
+        </field>
+        <field name="url">
+            <source type="attr" attr="href" tagParser="li.list_con_tit a"/>
+        </field>
+        <field name="publishTime">
+            <source type="text" tagParser="li.josbs_usetime span.c999"/>
+        </field>
+    </job>
+
+    <!--content-->
+    <job id="cjob" name="cjob" db="cjob">
+        <!-- type 分三种 text是文本内容, attr是属性,url 是从url中获取 -->
+        <!--   global 选配 默认false-->
+        <field name="jId" require="true">
+            <source type="url"/>
+            <parser type="regex" match="http://www.cjob.gov.cn/job/(\S+)"/>
+            <!--<parser type="regex" match="([0-9]+)x.shtml"/>-->
+            <!--match -->
+        </field>
+        <field name="jobName">
+            <source type="text" tagParser="h1 p:contains(招聘岗位：)"/>
+            <parser type="regex" match="招聘岗位：(\S+)"/>
+        </field>
+        <field name="publishTime">
+            <source type="text" tagParser="dd:contains(发布时间)"/>
+            <parser type="regex" match="发布时间：(\S+)"/>
+        </field>
+        <field name="jobSalary"><!--薪水-->
+            <source type="text" tagParser="dd:contains(工资待遇)"/>
+        </field>
+        <field name="jobArea">
+            <source type="text" tagParser="dd:contains(工作地点)"/>
+        </field>
+        <field name="companyDescription">
+            <source type="text" tagParser="dl.job_info_dwjs"/>
+        </field>
+        <field name="companyName">
+            <source type="text" tagParser=".line_top h1 a"/>
+        </field>
+        <field name="jobDescription">
+            <source type="text" tagParser="dl.job_info"/>
+        </field>
+        <field name="url">
+            <source type="url"/>
+        </field>
+    </job>
+
+
+    <!--list->content-->
+    <task id="cjob" job="cjob" sleep="1000">
+        <http method="get" charset="UTF-8" timeout="10000" responseType="html">
+            <header name="User-Agent"
+                    value="Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.31 (KHTML, like Gecko) Chrome/26.0.1410.64 Safari/537.31"/>
+        </http>
+        <source db="cjobList" field="url">
+            <parser type="match" url="http://www.cjob.gov.cn%s"/>
+        </source>
+    </task>
+
+    <!--seed->List-->
+    <task id="cjobList" job="cjobList" sleep="5000">
+        <http method="get" charset="UTF-8" timeout="10000" responseType="html">
+            <header name="User-Agent"
+                    value="Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.31 (KHTML, like Gecko) Chrome/26.0.1410.64 Safari/537.31"/>
+        </http>
+        <page type="regex" listParser=".list_list ul li"/>
+        <seeds>
+            <url>
+                <![CDATA[http://www.cjob.gov.cn/search.html?AAB004=&AAB019=&AAB020=&AAB022=&ACB239=&ACB228=&AAC011=&TYPE=4&orderType=score&zcType=&pageNo=%d&AREA=&AREA_name=&ACA111=&ACA111_name=&AAE397=&ACB241=]]></url>
+        </seeds>
+    </task>
+
+        </website>
+
+

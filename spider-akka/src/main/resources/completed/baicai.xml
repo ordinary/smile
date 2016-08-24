@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<website name="百才招聘网"><!--list->content的url部分为跳转-->
+    <!-- list 处理任务 -->
+    <job id="baicaiList" name="baicaiList" db="baicaiList">
+        <field name="jId" require="true">
+            <source type="attr" attr="href" tagParser="h3.col1 a"/>
+            <parser type="regex" match="/([0-9]+)/"/>
+        </field>
+        <field name="jobName">
+            <source type="text" tagParser="h3.col1 a"/>
+        </field>
+        <field name="companyName">
+            <source type="text" tagParser="p.col2 a"/>
+        </field>
+        <field name="jobArea">
+            <source type="text" tagParser="p span.col3"/>
+        </field>
+        <field name="url">
+            <source type="attr" attr="href" tagParser="h3.col1 a"/>
+        </field>
+        <field name="publishTime">
+            <source type="text" tagParser="p span.col5"/>
+            <parser type="interface" interfaceName="source"/>
+        </field>
+    </job>
+
+    <!--content-->
+    <job id="baicai" name="baicai" db="baicai">
+        <field name="jId" require="true">
+            <source type="url"/>
+            <parser type="regex" match="/([0-9]+)/"/>
+        </field>
+        <field name="jobName">
+            <source type="text" tagParser="h1.job-title span"/>
+        </field>
+        <field name="publishTime">
+            <source type="text" tagParser=".job-cnt ul li:contains(时间)"/>
+            <parser type="regex" match="更新时间：(\S+)"/>
+        </field>
+        <field name="jobSalary"><!--薪水-->
+            <source type="text" tagParser=".job-cnt ul li:contains(工资待遇)"/>
+            <parser type="regex" match="工资待遇：(.+)\("/>
+        </field>
+        <field name="jobArea">
+            <source type="text" tagParser=".job-cnt ul li:contains(工作地点)"/>
+            <parser type="regex" match="工作地点：(.+)"/>
+        </field>
+        <field name="jobType"><!--职位类型-->
+            <source type="text" tagParser=".job-cnt ul li:contains(职位类别)"/>
+            <parser type="regex" match="职位类别：(.+)"/>
+        </field>
+        <field name="companyName">
+            <source type="text" tagParser=".JC-company a.cpname"/>
+        </field>
+        <field name="companyIndustry">
+            <source type="text" tagParser="dl.info-cmpIntro"/>
+        </field>
+        <field name="jobDescription">
+            <source type="text" tagParser=".JC-detail"/>
+        </field>
+        <field name="companyDescription">
+            <source type="attr" attr="href" tagParser=".JC-company a.cpname"/>
+        </field>
+        <field name="url">
+            <source type="url"/>
+        </field>
+    </job>
+
+
+    <!--list->content-->
+    <task id="baicai" job="baicai" sleep="1000">
+        <http method="get" charset="UTF-8" timeout="10000" responseType="html">
+            <header name="User-Agent"
+                    value="Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.31 (KHTML, like Gecko) Chrome/26.0.1410.64 Safari/537.31"/>
+        </http>
+        <source db="baicaiList" field="url">
+            <parser type="field"/>
+        </source>
+    </task>
+
+    <!--seed->List-->
+    <task id="baicaiList" job="baicaiList" sleep="5000">
+        <http method="get" charset="UTF-8" timeout="10000" responseType="html">
+            <header name="User-Agent"
+                    value="Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.31 (KHTML, like Gecko) Chrome/26.0.1410.64 Safari/537.31"/>
+        </http>
+        <page type="regex" listParser="ul.jobList li"/>
+        <seeds>
+            <!--北京所有-->
+            <url>
+                <![CDATA[http://wuhan.baicai.com/jobs/?nowPage=%d]]></url>
+        </seeds>
+    </task>
+
+</website>
+
+

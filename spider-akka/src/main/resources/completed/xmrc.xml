@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<website name="厦门人才网"><!--list->content的url部分为跳转-->
+    <!-- list 处理任务 -->
+    <job id="xmrcList" name="xmrcList" db="xmrcList">
+        <field name="jId" require="true">
+            <source type="attr" attr="href" tagParser="td+td a"/>
+            <parser type="regex" match="ID=([0-9]+)"/>
+        </field>
+        <field name="jobName">
+            <source type="text" tagParser="td+td a"/>
+        </field>
+        <field name="companyName">
+            <source type="text" tagParser="a.js_companyName"/>
+        </field>
+        <field name="jobArea">
+            <source type="text" tagParser="td+td+td+td"/>
+        </field>
+        <field name="publishTime">
+            <source type="text" tagParser="a.appjob"/>
+        </field>
+        <field name="url">
+            <source type="attr" attr="href" tagParser="td+td a"/>
+        </field>
+    </job>
+
+    <!--content-->
+    <job id="xmrc" name="xmrc" db="xmrc">
+        <field name="jId" require="true">
+            <source type="url"/>
+            <parser type="regex" match="ID=([0-9]+)"/>
+        </field>
+        <field name="jobName">
+            <source type="text" tagParser="td font a[onclick] u"/>
+        </field>
+        <field name="publishTime">
+            <source type="text" tagParser="#container table table table tr:contains(招聘期限)"/>
+            <parser type="regex" match="招聘期限： (\S+)"/>
+        </field>
+        <field name="jobSalary"><!--薪水-->
+            <source type="text" tagParser="#container table table table table tr:contains(参考月薪)"/>
+            <parser type="regex" match="参考月薪： (.+)"/>
+        </field>
+        <field name="jobArea">
+            <source type="text" tagParser="#container table table table table tr:contains(工作地点)"/>
+            <parser type="regex" match="工作地点： (.+)"/>
+        </field>
+        <field name="jobType"><!--职位类型-->
+            <source type="text" tagParser="#container table table table table tr:contains(职位性质)"/>
+            <parser type="regex" match="职位性质： (.+)"/>
+        </field>
+        <field name="jobDescription">
+            <source type="text" tagParser="#container table table table tr:contains(职位职责)+tr"/>
+        </field>
+        <field name="companyName">
+            <source type="text" tagParser="#logo_td2"/>
+        </field>
+        <field name="companyIndustry">
+            <source type="text" tagParser="#container table table table tr:contains(单位简介)+tr"/>
+        </field>
+        <field name="companyDescription">
+            <source type="text" tagParser="#container table table table tr:contains(单位简介)+tr+tr+tr+tr"/>
+        </field>
+        <field name="url">
+            <source type="url"/>
+        </field>
+    </job>
+
+
+    <!--list->content-->
+    <task id="xmrc" job="xmrc" sleep="1000">
+        <http method="get" charset="UTF-8" timeout="10000" responseType="html">
+            <header name="User-Agent"
+                    value="Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.31 (KHTML, like Gecko) Chrome/26.0.1410.64 Safari/537.31"/>
+        </http>
+        <source db="xmrcList" field="url">
+            <parser type="match" url="http://www.xmrc.com.cn/net/info/%s"/>
+        </source>
+    </task>
+
+    <!--seed->List-->
+    <task id="xmrcList" job="xmrcList" sleep="5000">
+        <http method="get" charset="UTF-8" timeout="10000" responseType="html">
+            <header name="User-Agent"
+                    value="Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.31 (KHTML, like Gecko) Chrome/26.0.1410.64 Safari/537.31"/>
+        </http>
+        <page type="regex" listParser="table.queryRecruitTable tr.bg"/>
+        <seeds>
+            <url>
+                <![CDATA[http://www.xmrc.com.cn/net/info/resultg.aspx?a=a&g=g&releaseTime=365&searchtype=1&sortby=updatetime&ascdesc=Desc&PageIndex=%d]]></url>
+        </seeds>
+    </task>
+
+</website>
+
+

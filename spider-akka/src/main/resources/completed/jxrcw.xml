@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?><!--post请求-->
+<website name="江西人才人事网"><!--list->content的url部分为跳转-->
+    <!-- list 处理任务 -->
+    <job id="jxrcwList" name="jxrcwList" db="jxrcwList">
+        <field name="jId" require="true">
+            <source type="attr" attr="href" tagParser="ul li.zwrq a"/>
+            <parser type="regex" match="g_pos/(\S+).shtml"/>
+        </field>
+        <field name="jobName">
+            <source type="text" tagParser="ul li.zwrq a"/>
+        </field>
+        <field name="companyName">
+            <source type="text" tagParser="ul li.cname"/>
+        </field>
+<!--        <field name="jobArea">
+            <source type="text" tagParser="td+td+td+td"/>
+        </field>-->
+        <field name="url">
+            <source type="attr" attr="href" tagParser="ul li.zwrq a"/>
+        </field>
+        <field name="publishTime">
+            <source type="text" tagParser="ul li.zwrq a"/>
+            <parser type="regex" match=" (\S+)"/>
+        </field>
+    </job>
+
+    <!--content-->
+    <job id="jxrcw" name="jxrcw" db="jxrcw">
+        <field name="jId" require="true">
+            <source type="url"/>
+            <parser type="regex" match="g_pos/(\S+).shtml"/>
+        </field>
+        <field name="jobName">
+            <source type="text" tagParser="div.zwxq_zpzw span"/>
+        </field>
+        <field name="publishTime">
+            <source type="text" tagParser="div.zwms table td:contains(发布日期)+td"/>
+        </field>
+        <field name="jobSalary"><!--薪水-->
+            <source type="text" tagParser="div.zwms table td:contains(薪酬待遇)+td"/>
+        </field>
+        <field name="jobArea">
+            <source type="text" tagParser="div.zwxq_zpzw"/>
+            <parser type="regex" match="工作地点:(\S+)"/>
+        </field>
+        <field name="jobType"><!--职位类型-->
+            <source type="text" tagParser="div.zwms table td:contains(职位性质)+td"/>
+        </field>
+        <field name="companyName">
+            <source type="text" tagParser="div.zpdw span"/>
+        </field>
+        <field name="companyIndustry">
+            <source type="text" tagParser="div.zpdw"/>
+        </field>
+        <field name="jobDescription">
+            <source type="text" tagParser="div.zwxq_con div.zwxq_txt:contains(职位描述)+div"/>
+        </field>
+        <field name="companyDescription">
+            <source type="attr" attr="href" tagParser=".gzsq a"/>
+        </field>
+        <field name="url">
+            <source type="url"/>
+        </field>
+    </job>
+
+
+    <!--list->content-->
+    <task id="jxrcw" job="jxrcw" sleep="1000">
+        <http method="get" charset="UTF-8" timeout="10000" responseType="html">
+            <header name="User-Agent"
+                    value="Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.31 (KHTML, like Gecko) Chrome/26.0.1410.64 Safari/537.31"/>
+        </http>
+        <source db="jxrcwList" field="url">
+            <parser type="match" url="http://www.jxrcw.com%s"/>
+        </source>
+    </task>
+
+    <!--seed->List-->
+    <task id="jxrcwList" job="jxrcwList" sleep="5000">
+        <http method="get" charset="GBK" timeout="10000" responseType="html">
+            <header name="User-Agent"
+                    value="Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.31 (KHTML, like Gecko) Chrome/26.0.1410.64 Safari/537.31"/>
+        </http>
+        <page type="regex" listParser="#zyxs div.btxs"/>
+        <seeds>
+            <!--北京所有-->
+            <url>
+                <![CDATA[http://www.jxrcw.com/gposinfo/freejobs/poslist.asp?during=90&pagenum=%d]]></url>
+        </seeds>
+    </task>
+
+</website>
+
+

@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<website name="中国外语人才网"><!--list->content的url部分为跳转-->
+    <!-- list 处理任务 -->
+    <job id="jobeastList" name="jobeastList" db="jobeastList">
+        <!-- type 分三种 text是文本内容, attr是属性,url 是从url中获取 -->
+        <!--   global 选配 默认false-->
+        <field name="jId" require="true">
+           <!-- <source type="attr" attr="infoid" tagParser="dd i"/>-->
+            <source type="attr" attr="href" tagParser="a.zwmc"/>
+            <parser type="regex" match="/Jobs/(\S+)"/>
+            <!--match -->
+        </field>
+        <field name="jobName">
+            <source type="text" tagParser="a.zwmc"/>
+        </field>
+        <field name="companyName">
+            <source type="text" tagParser="a.dwmc"/>
+        </field>
+        <field name="url">
+            <source type="attr" attr="href" tagParser="a.zwmc"/>
+        </field>
+    </job>
+
+    <!--content-->
+    <job id="jobeast" name="jobeast" db="jobeast">
+        <!-- type 分三种 text是文本内容, attr是属性,url 是从url中获取 -->
+        <!--   global 选配 默认false-->
+        <field name="jId" require="true">
+            <source type="url"/>
+            <parser type="regex" match="http://www.jobeast.com/Jobs/(\S+)"/>
+            <!--<parser type="regex" match="([0-9]+)x.shtml"/>-->
+            <!--match -->
+        </field>
+        <field name="jobName">
+            <source type="text" tagParser=".clearfix h1"/>
+        </field>
+        <field name="publishTime">
+            <source type="text" tagParser="li:contains(发布时间)"/>
+            <parser type="regex" match="发布时间：(\S+)"/>
+        </field>
+        <field name="jobSalary"><!--薪水-->
+            <source type="text" tagParser="li:contains(薪资水平：)"/>
+            <parser type="regex" match="薪资水平：(\S+)"/>
+        </field>
+        <field name="jobArea">
+            <source type="text" tagParser="li:contains(工作地点：)"/>
+            <parser type="regex" match="工作地点：(\S+)"/>
+        </field>
+        <field name="companyDescription">
+            <source type="attr" attr="href"  tagParser="li:contains(单位简介)"/>
+        </field>
+        <field name="companyName">
+            <source type="text" tagParser=".clearfix div.ml10 strong"/>
+            <parser type="regex" match="招聘部门:(\S+)"/>
+        </field>
+        <field name="jobDescription">
+            <source type="text" tagParser=".zhiweiinfo"/>
+        </field>
+        <field name="url">
+            <source type="url"/>
+        </field>
+    </job>
+
+
+    <!--list->content-->
+    <task id="jobeast" job="jobeast" sleep="1000">
+        <http method="get" charset="UTF-8" timeout="10000" responseType="html">
+            <header name="User-Agent"
+                    value="Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.31 (KHTML, like Gecko) Chrome/26.0.1410.64 Safari/537.31"/>
+        </http>
+        <source db="jobeastList" field="url">
+            <parser type="match" url="http://www.jobeast.com%s"/>
+        </source>
+    </task>
+
+    <!--seed->List-->
+    <task id="jobeastList" job="jobeastList" sleep="5000">
+        <http method="get" charset="UTF-8" timeout="10000" responseType="html">
+            <header name="User-Agent"
+                    value="Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.31 (KHTML, like Gecko) Chrome/26.0.1410.64 Safari/537.31"/>
+        </http>
+        <page type="regex" listParser=".index_box div.zwsh_box"/>
+        <seeds>
+            <url>
+                <![CDATA[http://www.jobeast.com/search/Search.aspx?class=&smallclass=&sltArea=&Language1=&keyword=&keyword_type=1&hidfuntype=&WorkMethod=3&page=%d]]></url>
+        </seeds>
+    </task>
+
+        </website>
+
+

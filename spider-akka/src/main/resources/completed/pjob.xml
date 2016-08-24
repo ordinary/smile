@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<website name="中国印刷人才网"><!--list->content的url部分为跳转-->
+    <!-- list 处理任务 -->
+    <job id="pjobList" name="pjobList" db="pjobList">
+        <!-- type 分三种 text是文本内容, attr是属性,url 是从url中获取 -->
+        <!--   global 选配 默认false-->
+        <field name="jId" require="true">
+           <!-- <source type="attr" attr="infoid" tagParser="dd i"/>-->
+            <source type="attr" attr="href" tagParser="span.job_name a"/>
+            <parser type="regex" match="/resume/util/(\S+)"/>
+            <!--match -->
+        </field>
+        <field name="jobName">
+            <source type="text" tagParser="span.job_name a"/>
+        </field>
+        <field name="companyName">
+            <source type="text" tagParser="span.job_company a"/>
+        </field>
+        <field name="jobArea">
+            <source type="text" tagParser="span.job_area"/>
+        </field>
+        <field name="url">
+            <source type="attr" attr="href" tagParser="span.job_name a"/>
+        </field>
+        <field name="publishTime">
+            <source type="text" tagParser="span.job_time"/>
+        </field>
+    </job>
+
+    <!--content-->
+    <job id="pjob" name="pjob" db="pjob">
+        <!-- type 分三种 text是文本内容, attr是属性,url 是从url中获取 -->
+        <!--   global 选配 默认false-->
+        <field name="jId" require="true">
+            <source type="url"/>
+            <parser type="regex" match="http://www.pjob.net/resume/util/(\S+)"/>
+            <!--<parser type="regex" match="([0-9]+)x.shtml"/>-->
+            <!--match -->
+        </field>
+        <field name="jobName">
+            <source type="text" tagParser=".CI_b_main table tr td a.tabA_nonce"/>
+        </field>
+        <field name="publishTime">
+            <source type="text" tagParser="th:contains(招聘日期)+td"/>
+           <!-- <parser type="regex" match="期限:(\S+)"/>-->
+        </field>
+        <field name="jobSalary"><!--薪水-->
+            <source type="text" tagParser="th:contains(工资待遇)+td"/>
+            <!--<parser type="regex" match="薪水:(\S+)"/>-->
+        </field>
+        <field name="jobArea">
+            <source type="text" tagParser="th:contains(工作地点)+td"/>
+           <!-- <parser type="regex" match="地点：(\S+)"/>-->
+        </field>
+<!--        <field name="jobType">&lt;!&ndash;职位类型&ndash;&gt;
+
+        </field>-->
+        <field name="companyName">
+            <source type="text" tagParser="span.corpName h1"/>
+          <!--  <parser type="regex" match="学校/企业:(\S+)"/>-->
+        </field>
+        <field name="jobDescription">
+            <source type="text" tagParser="th:contains(职位描述)+td"/>
+        </field>
+        <field name="companyDescription">
+            <source type="text" tagParser="span.corpName ul li a"/>
+        </field>
+        <field name="url">
+            <source type="url"/>
+        </field>
+    </job>
+
+
+    <!--list->content-->
+    <task id="pjob" job="pjob" sleep="1000">
+        <http method="get" charset="UTF-8" timeout="10000" responseType="html">
+            <header name="User-Agent"
+                    value="Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.31 (KHTML, like Gecko) Chrome/26.0.1410.64 Safari/537.31"/>
+        </http>
+        <source db="pjobList" field="url">
+            <parser type="match" url="http://www.pjob.net%s"/>
+        </source>
+    </task>
+
+    <!--seed->List-->
+    <task id="pjobList" job="pjobList" sleep="5000">
+        <http method="get" charset="UTF-8" timeout="10000" responseType="html">
+            <header name="User-Agent"
+                    value="Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.31 (KHTML, like Gecko) Chrome/26.0.1410.64 Safari/537.31"/>
+        </http>
+        <page type="regex" listParser="ul.result_list li"/>
+        <seeds>
+            <url>
+                <![CDATA[http://www.pjob.net/public/J1000_P%d/]]></url>
+        </seeds>
+    </task>
+
+</website>
+
+

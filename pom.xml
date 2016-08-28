@@ -7,11 +7,6 @@
     <version>1.0.0-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>parent</name>
-    <parent>
-        <groupId>com.funshion</groupId>
-        <artifactId>fx-parent</artifactId>
-        <version>1.0.0.2</version>
-    </parent>
     <modules>
         <module>smile-sharding</module>
         <module>smile-web</module>
@@ -33,6 +28,7 @@
         <xstream.version>1.4.8</xstream.version>
         <httpclient-version>4.5.2</httpclient-version>
         <mysql-connector-java.version>5.1.38</mysql-connector-java.version>
+        <log4j2.version>2.1</log4j2.version>
     </properties>
     <dependencyManagement>
         <dependencies>
@@ -182,6 +178,43 @@
                 <groupId>org.apache.shiro</groupId>
                 <artifactId>shiro-quartz</artifactId>
                 <version>${shiro.version}</version>
+            </dependency>
+
+
+            <dependency>
+                <groupId>org.apache.logging.log4j</groupId>
+                <artifactId>log4j-api</artifactId>
+                <version>${log4j2.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.logging.log4j</groupId>
+                <artifactId>log4j-core</artifactId>
+                <version>${log4j2.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.logging.log4j</groupId>
+                <artifactId>log4j-web</artifactId>
+                <version>${log4j2.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.logging.log4j</groupId>
+                <artifactId>log4j-1.2-api</artifactId>
+                <version>${log4j2.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.logging.log4j</groupId>
+                <artifactId>log4j-jcl</artifactId>
+                <version>${log4j2.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.logging.log4j</groupId>
+                <artifactId>log4j-slf4j-impl</artifactId>
+                <version>${log4j2.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.logging.log4j</groupId>
+                <artifactId>log4j-jul</artifactId>
+                <version>${log4j2.version}</version>
             </dependency>
 
         </dependencies>

@@ -7,9 +7,9 @@
         <property name="poolProperties">
             <bean class="org.apache.tomcat.jdbc.pool.PoolProperties">
                 <property name="driverClassName" value="com.mysql.jdbc.Driver"/>
-                <property name="url" value="jdbc:mysql://172.17.12.95:3306/db_jupiter_test?useUnicode=true&amp;characterEncoding=utf-8&amp;allowMultiQueries=true"/>
+                <property name="url" value="jdbc:mysql://127.0.0.1:3306/test?useUnicode=true&amp;characterEncoding=utf-8&amp;allowMultiQueries=true"/>
                 <property name="username" value="root"/>
-                <property name="password" value="root"/>
+                <property name="password" value="123"/>
                 <property name="jmxEnabled" value="true"/>
                 <property name="testWhileIdle" value="true"/>
                 <property name="testOnBorrow" value="true"/>

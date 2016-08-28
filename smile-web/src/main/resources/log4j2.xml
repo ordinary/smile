@@ -2,7 +2,7 @@
 <Configuration status="debug" packages="com.smile">
     <properties>
         <!-- 基本的文件的输出信息的配置 -->
-        <property name="LOG_HOME">/usr/local/tomcat6/logs</property>
+        <property name="LOG_HOME">/usr/local/tomcat/logs</property>
         <!-- 日志备份目录 -->
         <property name="BACKUP_HOME">{LOG_HOME}/backup</property>
     </properties>
@@ -31,10 +31,9 @@
         </RollingFile>
     </Appenders>
     <Loggers>
-        <Root level="info">
+        <Root level="debug">
             <AppenderRef ref="console"/>
         </Root>
-
         <logger name="log4j.logger.org.mybatis" level="debug" additivity="false">
             <appender-ref ref="Console"/>
         </logger>

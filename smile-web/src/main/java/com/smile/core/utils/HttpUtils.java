@@ -34,11 +34,11 @@ public class HttpUtils {
     /**
      * 设置连接的超时时间
      */
-    private static int connectionTimeout = 10000 * 60;
+    private static int connectionTimeout = 1000 * 60;
     /**
      * 读取数据的超时时间
      */
-    private static int soTimeout = 10000 * 60;
+    private static int soTimeout = 1000 * 60;
     /**
      * 设置每个路由最大连接数
      */
@@ -63,7 +63,7 @@ public class HttpUtils {
     }
 
 
-    public static String executor(HttpContext httpContext) throws UnsupportedEncodingException, URISyntaxException {
+    public static String executor(HttpContext httpContext) throws IOException, URISyntaxException {
         switch (httpContext.getHttpMethod()) {
             case POST:
                 return post(httpContext);
@@ -73,7 +73,7 @@ public class HttpUtils {
         return null;
     }
 
-    private static String get(HttpContext httpContext) throws URISyntaxException, UnsupportedEncodingException {
+    private static String get(HttpContext httpContext) throws URISyntaxException, IOException {
         URIBuilder uriBuilder = getUriBuilder(httpContext);
         HttpGet get = new HttpGet(uriBuilder.build());
         setRequestConfig(httpContext, get);
@@ -86,7 +86,7 @@ public class HttpUtils {
     }
 
 
-    private static String post(HttpContext httpContext) throws URISyntaxException, UnsupportedEncodingException {
+    private static String post(HttpContext httpContext) throws URISyntaxException, IOException {
         URIBuilder uriBuilder = getUriBuilder(httpContext);
         HttpPost post = new HttpPost(uriBuilder.build());
         setRequestConfig(httpContext, post);
@@ -119,20 +119,15 @@ public class HttpUtils {
     }
 
 
-    private static String getHttpString(HttpContext httpContext, HttpRequestBase httpRequest) {
-        try {
-            CloseableHttpResponse response = httpClient.execute(httpRequest);
-            String result = null;
-            HttpEntity entity = response.getEntity();
-            if (entity != null) {
-                result = EntityUtils.toString(entity, httpContext.getCharset());
-            }
-            EntityUtils.consume(entity);
-            return result;
-        } catch (IOException e) {
-            e.printStackTrace();
+    private static String getHttpString(HttpContext httpContext, HttpRequestBase httpRequest) throws IOException {
+        CloseableHttpResponse response = httpClient.execute(httpRequest);
+        String result = null;
+        HttpEntity entity = response.getEntity();
+        if (entity != null) {
+            result = EntityUtils.toString(entity, httpContext.getCharset());
         }
-        return null;
+        EntityUtils.consume(entity);
+        return result;
     }
 
     private static void setRequestConfig(HttpContext httpContext, HttpRequestBase httpRequest) {
@@ -144,7 +139,7 @@ public class HttpUtils {
                     .setSocketTimeout(soTimeout);
         }
         if (httpContext.isProxy()) {
-            //TODO
+            //TODO 代理
         }
         //TODO 认证
 
